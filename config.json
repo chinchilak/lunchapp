@@ -1,0 +1,49 @@
+{
+    "DB_NAME": "database.db",
+    "DB_TABLE_VOTES": "votes",
+    "DB_TABLE_MSGS": "messages",
+    "DB_TABLE_MENUS": "menus",
+    "DB_COLS_VOTES": [
+        "date",
+        "username",
+        "squad",
+        "place",
+        "time"
+    ],
+    "DB_COLS_MSGS": [
+        "date",
+        "time",
+        "username",
+        "squad",
+        "message"
+    ],
+    "DB_COLS_MENUS": [
+        "date",
+        "place",
+        "menu"
+    ],
+    "PLACES": [
+        "2 promile",
+        "Pod Platanem",
+        "Au Pere Tranquille",
+        "Slezsk\u00e1 P.U.O.R.",
+        "Pizza Coloseum"
+    ],
+    "URLS": [
+        "https://www.menicka.cz/3486-2-promile.html",
+        "https://www.menicka.cz/1421-pod-platanem.html",
+        "https://www.menicka.cz/6792-caf-au-pere-tranquille.html",
+        "https://www.menicka.cz/1406-slezska-p.u.o.r..html",
+        "https://www.menicka.cz/517-pizza-coloseum-karolina.html"
+    ],
+    "TIMES": [
+        "11:00",
+        "11:30",
+        "12:00",
+        "12:30"
+    ],
+    "GROUPS": [
+        "My Group",
+        "Guest Group"
+    ]
+}

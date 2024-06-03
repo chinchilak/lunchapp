@@ -1,0 +1,5 @@
+altair
+beautifulsoup4
+pandas
+Requests
+streamlit
