@@ -49,28 +49,34 @@ def save_data(data):
         json.dump(data, file, indent=4)
 
 def get_restaurant_menu(url:str) -> list:
-    response = requests.get(url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    menicka_element = soup.find(class_='menicka')
-    results_list = []
-    if menicka_element:
-        div_elements = menicka_element.find_all('div')
-        for div in div_elements:
-            results_list.append(div.get_text(strip=True))
+    try:
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        menicka_element = soup.find(class_='menicka')
+        results_list = []
+        if menicka_element:
+            div_elements = menicka_element.find_all('div')
+            for div in div_elements:
+                results_list.append(div.get_text(strip=True))
+    except:
+        results_list = []
     return results_list
 
 def store_menus():
     list_all = []
     for nm, url in zip(config["PLACES"], config["URLS"]):
         if "menicka.cz" in url:
-            res = get_restaurant_menu(url)
-            soup = res[2]
-            if res[3] != "":
-                res.pop(3)
-            res = [item for item in res[2:] if item]
-            merged_list = [res[i] + ' ' + res[i+1] for i in range(1, len(res)-1, 2)]
-            merged_list.insert(0, soup)
-            merged_list.insert(0, nm)
+            try:
+                res = get_restaurant_menu(url)
+                soup = res[2]
+                if res[3] != "":
+                    res.pop(3)
+                res = [item for item in res[2:] if item]
+                merged_list = [res[i] + ' ' + res[i+1] for i in range(1, len(res)-1, 2)]
+                merged_list.insert(0, soup)
+                merged_list.insert(0, nm)
+            except:
+                merged_list = [nm, "No data retrieved", ""]
             list_all.append(merged_list)
     return list_all
 
