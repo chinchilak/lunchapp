@@ -59,6 +59,21 @@ def get_restaurant_menu(url:str) -> list:
             results_list.append(div.get_text(strip=True))
     return results_list
 
+def store_menus():
+    list_all = []
+    for nm, url in zip(config["PLACES"], config["URLS"]):
+        if "menicka.cz" in url:
+            res = get_restaurant_menu(url)
+            soup = res[2]
+            if res[3] != "":
+                res.pop(3)
+            res = [item for item in res[2:] if item]
+            merged_list = [res[i] + ' ' + res[i+1] for i in range(1, len(res)-1, 2)]
+            merged_list.insert(0, soup)
+            merged_list.insert(0, nm)
+            list_all.append(merged_list)
+    return list_all
+
 def date_format():
     now = datetime.datetime.now()
     date = now.strftime("%d. %m. %Y")
@@ -82,6 +97,7 @@ def connect_db():
     with DatabaseConnection(config["DB_NAME"]) as db:
         db.execute(generate_create_table_sql(config["DB_TABLE_VOTES"], config["DB_COLS_VOTES"]))
         db.execute(generate_create_table_sql(config["DB_TABLE_MSGS"], config["DB_COLS_MSGS"]))
+        db.execute(generate_create_table_sql(config["DB_TABLE_MENUS"], config["DB_COLS_MENUS"]))
 
 def create_combinations(list1, list2):
     return list(product(list1, list2))
@@ -109,21 +125,6 @@ def fetch_messages(current_date, group):
     with DatabaseConnection(config["DB_NAME"]) as db:
         cursor = db.execute(f"SELECT {config["DB_COLS_MSGS"][1]}, {config["DB_COLS_MSGS"][2]}, {config["DB_COLS_MSGS"][4]} FROM {config["DB_TABLE_MSGS"]} WHERE {config["DB_COLS_MSGS"][0]} = '{current_date}' AND {config["DB_COLS_MSGS"][3]} = '{group}' ORDER BY {config["DB_COLS_MSGS"][1]} DESC")
         return cursor.fetchall()
-
-def store_menus():
-    list_all = []
-    for nm, url in zip(config["PLACES"], config["URLS"]):
-        res = get_restaurant_menu(url)
-        soup = res[2]
-        if res[3] != "":
-            res.pop(3)
-        res = [item for item in res[2:] if item]
-        merged_list = [res[i] + ' ' + res[i+1] for i in range(1, len(res)-1, 2)]
-        merged_list.insert(0, soup)
-        merged_list.insert(0, nm)
-        list_all.append(merged_list)
-    return list_all
-
 
 def transform_data_for_db(inputlist, today):
     transformed_data = []
@@ -155,6 +156,7 @@ footer {visibility: hidden;}
 """
 # st.html(hide_streamlit_style)
 st.sidebar.html(f"<h2><div style='margin-top: -60px'>Lunch App 1.0</div></h2>")
+
 cols = st.columns([5,0.5,5])
 
 if 'logged_in' not in st.session_state:
@@ -242,7 +244,8 @@ if st.session_state.logged_in:
                     st.warning("Please select groups to remove.")
 
 
-    connect_db()
+    if not os.path.exists(config["DB_NAME"]):
+        connect_db()
 
     with cols[0]:
         st.html(f"<h4>{date_format()}</h4>")
@@ -315,21 +318,19 @@ if st.session_state.logged_in:
 
 
     with cols[2]:
-        try:
-            with DatabaseConnection(config["DB_NAME"]) as db:
-                if st.button("Refresh menus"):
-                    lst = store_menus()
-                    mdf = transform_data_for_db(lst, current_date)
-                    mdf.to_sql(config["DB_TABLE_MENUS"], db.conn, if_exists="replace", index=False)
-                    menus = get_menus(current_date)
-                else:
-                    menus = get_menus(current_date)
-        except:
-            st.write("Something went wrong")
-        else:
-            for category, group in menus:
-                with st.expander(f":grey[{category}]", expanded=False):
-                    for _, row in group.iterrows():
-                        st.write(row[config["DB_COLS_MENUS"][2]])
+        with DatabaseConnection(config["DB_NAME"]) as db:
+            if st.button("Refresh menus"):
+                lst = store_menus()
+                mdf = transform_data_for_db(lst, current_date)
+                mdf.to_sql(config["DB_TABLE_MENUS"], db.conn, if_exists="replace", index=False)
+                menus = get_menus(current_date)
+            else:
+                menus = get_menus(current_date)
+
+
+        for category, group in menus:
+            with st.expander(f":grey[{category}]", expanded=False):
+                for _, row in group.iterrows():
+                    st.write(row[config["DB_COLS_MENUS"][2]])
 else:
     st.write("Please log in using the form in the sidebar.")
