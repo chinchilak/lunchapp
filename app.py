@@ -76,7 +76,7 @@ def store_menus():
                 merged_list.insert(0, soup)
                 merged_list.insert(0, nm)
             except:
-                merged_list = [nm, "No data retrieved", ""]
+                merged_list = [nm, "", "No data retrieved"]
             list_all.append(merged_list)
     return list_all
 
